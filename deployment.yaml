@@ -1,0 +1,217 @@
+version: '3'
+
+services:
+  thehive:
+    image: strangebee/thehive:latest
+    restart: unless-stopped
+    depends_on:
+      - cassandra
+      - elasticsearch
+      - cortex
+    ports:
+      - "0.0.0.0:9000:9000"
+    environment:
+    
+      - JVM_OPTS="-Xms1024M -Xmx1024M"
+    volumes:
+      - thehivedata:/etc/thehive/application.conf.d
+    networks:
+      - supersirp
+
+  cassandra:
+    image: 'cassandra:4'
+    restart: unless-stopped
+    mem_limit: 1000m
+    ports:
+      - "0.0.0.0:9042:9042"
+    environment:
+      - CASSANDRA_CLUSTER_NAME=TheHive
+    volumes:
+      - cassandradata:/var/lib/cassandra
+    networks:
+      - supersirp
+     
+  cortex:
+    image: thehiveproject/cortex:3.1.1
+    restart: unless-stopped
+    environment:
+
+        - job_directory=/opt/cortex/jobs
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - cortexdata:/var/run/docker.sock
+      - cortexdata:/opt/cortex/jobs
+      - cortexdata:/var/log/cortex
+      - cortexdata:/cortex/application.conf
+   
+    depends_on:
+      - elasticsearch
+    ports:
+      - "0.0.0.0:9001:9001"
+    networks:
+      - supersirp 
+     
+     
+     
+     
+  redis:
+    image: redis:5.0.6
+    ports:
+      - "0.0.0.0:6379:6379"
+    networks:
+      - supersirp
+  
+     
+   
+     
+     
+     
+  wazuh:
+    image: wazuh/wazuh:3.13.6_7.9.2
+    hostname: wazuh-manager
+    restart: always
+    ports:
+      - "1514:1514/udp"
+      - "1515:1515"
+      - "514:514/udp"
+      - "55000:55000"
+    networks:
+      - supersirp
+      
+      
+      
+      
+  elasticsearch:
+    image: wazuh/wazuh-elasticsearch:3.13.6_7.9.2
+    hostname: elasticsearch
+    restart: always
+    ports:
+      - "0.0.0.0:9200:9200"
+      - "0.0.0.0:9300:9300"
+    environment:
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+      - ELASTIC_CLUSTER=true
+      - CLUSTER_NODE_MASTER=true
+      - CLUSTER_MASTER_NODE_NAME=elasticsearch
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    mem_limit: 2g     
+
+    networks:
+      - supersirp
+      
+     
+
+  kibana:
+    image: wazuh/wazuh-kibana:3.13.6_7.9.2
+    hostname: kibana
+    restart: always
+    ports:
+      - "5601:5601"
+    environment:
+      - xpack.encryptedSavedObjects.encryptionKey="enunlugardelamanchadecuyonombremeacuerdomuybienviviaunsirpvigilandolotodo"
+      - xpack.security.enabled=true
+    depends_on:
+      - elasticsearch
+    links:
+      - elasticsearch:elasticsearch
+      - wazuh:wazuh
+    networks:
+      - supersirp
+      
+      
+
+  nginx:
+    image: wazuh/wazuh-nginx:3.13.6_7.9.2
+    hostname: nginx
+    restart: always
+    environment:
+      - NGINX_PORT=443
+      - NGINX_CREDENTIALS
+    ports:
+      - "96:80"
+      - "9696:443"
+    depends_on:
+      - kibana
+    links:
+      - kibana:kibana#
+    networks:
+      - supersirp
+      
+      
+  misp:
+    image: coolacid/misp-docker:core-latest
+    restart: unless-stopped
+    depends_on: 
+      - misp_mysql
+      - redis
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:443"
+    volumes:
+      - "./server-configs/:/var/www/MISP/app/Config/"
+      - "./logs/:/var/www/MISP/app/tmp/logs/"
+      - "./files/:/var/www/MISP/app/files"
+      - "./ssl/:/etc/nginx/certs"
+    environment:
+      - MYSQL_HOST=misp_mysql
+      - MYSQL_DATABASE=mispdb
+      - MYSQL_USER=superwatch
+      - MYSQL_PASSWORD=superwatch2022
+      - MISP_ADMIN_EMAIL=pcalvin@uoc.edu
+      - MISP_ADMIN_PASSPHRASE=superwatch
+      - MISP_BASEURL=localhost
+      - TIMEZONE=Europe/Madrid
+      - MISP_REDIS_HOST=redis
+      - "INIT=true"         
+      - "CRON_USER_ID=1"   
+      - "REDIS_FQDN=redis"
+      - "HOSTNAME=https://45.77.226.199"
+
+    networks:
+      - supersirp
+
+  misp_mysql:
+    image: mysql/mysql-server:5.7
+    restart: unless-stopped
+    volumes:
+      - mispsqldata:/var/lib/mysql   
+    environment:
+      - MYSQL_DATABASE=mispdb
+      - MYSQL_USER=superwatch
+      - MYSQL_PASSWORD=superwatch2022
+      - MYSQL_ROOT_PASSWORD=superwatch2022
+    networks:
+      - supersirp
+      
+      
+      
+  misp-modules:
+    image: coolacid/misp-docker:modules-latest
+    environment:
+      - "REDIS_BACKEND=redis"
+    depends_on:
+      - redis
+      - misp_mysql
+    networks:
+      - supersirp
+      
+      
+      
+volumes:
+  cassandradata:
+  elasticsearchdata:
+  cortexdata:
+  thehivedata:
+  mispsqldata:
+  kibanadata:
+  wazuhdata:
+  wazuhlog:
+  wazuhrules:
+
+networks:
+   supersirp:
+          driver: bridge
+    
