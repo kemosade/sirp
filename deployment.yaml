@@ -158,9 +158,9 @@ services:
     environment:
       - MYSQL_HOST=misp_mysql
       - MYSQL_DATABASE=mispdb
-      - MYSQL_USER=superwatch
-      - MYSQL_PASSWORD=superwatch2022
-      - MISP_ADMIN_EMAIL=pcalvin@uoc.edu
+      - MYSQL_USER=masomenos
+      - MYSQL_PASSWORD=filomeno
+      - MISP_ADMIN_EMAIL=loque@gmalo.com
       - MISP_ADMIN_PASSPHRASE=superwatch
       - MISP_BASEURL=localhost
       - TIMEZONE=Europe/Madrid
@@ -180,9 +180,9 @@ services:
       - mispsqldata:/var/lib/mysql   
     environment:
       - MYSQL_DATABASE=mispdb
-      - MYSQL_USER=superwatch
-      - MYSQL_PASSWORD=superwatch2022
-      - MYSQL_ROOT_PASSWORD=superwatch2022
+      - MYSQL_USER=jhondoe
+      - MYSQL_PASSWORD=algoaqui
+      - MYSQL_ROOT_PASSWORD=algomas
     networks:
       - supersirp
       
