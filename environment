@@ -1,8 +1,8 @@
 API_USERNAME="wazuh"                                # Wazuh API username
-API_PASSWORD="wazuh"                                # Wazuh API password - Must comply with requirements
+API_PASSWORD="your-password"                                # Wazuh API password - Must comply with requirements
 ELASTICSEARCH_URL=http://elasticsearch:9200        # Elasticsearch URL
 ELASTIC_USERNAME="kibana_system"                              # Elasticsearch Username
-ELASTIC_PASSWORD="admin456"  						# Elasticsearch Password
+ELASTIC_PASSWORD="your-password"  						# Elasticsearch Password
 ELASTICSEARCH_HOSTS=http://elasticsearch:9200
 FILEBEAT_SSL_VERIFICATION_MODE=full                 # Filebeat SSL Verification mode (full or none)
 SSL_CERTIFICATE_AUTHORITIES=""                      # Path of Filebeat SSL CA
